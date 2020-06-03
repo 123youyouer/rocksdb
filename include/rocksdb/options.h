@@ -1385,6 +1385,8 @@ struct WriteOptions {
   // system call followed by "fdatasync()".
   //
   // Default: false
+  // 如果设置为true,那么每次写入的时候rocksDB将会把数据从操作系统的磁盘缓存中刷入磁盘
+  // 会造成写入变慢一些.
   bool sync;
 
   // If true, writes will not first go to the write ahead log,
@@ -1393,17 +1395,22 @@ struct WriteOptions {
   // you disable write-ahead logs, you must create backups with
   // flush_before_backup=true to avoid losing unflushed memtable data.
   // Default: false
+  // 如果设置为true,那么每次写入的时候不会写WAL文件
+  // 所以可能会造成数据丢失
   bool disableWAL;
 
   // If true and if user is trying to write to column families that don't exist
   // (they were dropped),  ignore the write (don't return an error). If there
   // are multiple writes in a WriteBatch, other writes will succeed.
   // Default: false
+  // 如果设置为true,用户写入不存在的column families时候,不报错,仅仅是忽略.
+  // 这样的话,如果上述错误的写入在一个WriteBatch里.其他的写入将会成功
   bool ignore_missing_column_families;
 
   // If true and we need to wait or sleep for the write request, fails
   // immediately with Status::Incomplete().
   // Default: false
+  // 如果设置为true,那么在如果写磁盘的时候如果需要等待/休眠就立刻返回Status::Incomplete()
   bool no_slowdown;
 
   // If true, this write request is of lower priority if compaction is
@@ -1413,6 +1420,8 @@ struct WriteOptions {
   // it introduces minimum impacts to high priority writes.
   //
   // Default: false
+  // 如果设置为true,那么写操作的优先级比compaction低.
+  // 在这种情况下no_slowdown = true
   bool low_pri;
 
   // If true, this writebatch will maintain the last insert positions of each
@@ -1422,6 +1431,9 @@ struct WriteOptions {
   // option will be ignored.
   //
   // Default: false
+  // 如果为true，则writebatch将保留每个memtable的最后插入位置作为并发写入的提示.
+  // 如果一个writebatch中的键是顺序的，则在并发写入中它可以提高写入性能.
+  // 在非并发写入（当concurrent_memtable_writes为false时）选项将被忽略。
   bool memtable_insert_hint_per_batch;
 
   // Timestamp of write operation, e.g. Put. All timestamps of the same
@@ -1433,6 +1445,10 @@ struct WriteOptions {
   // thus has to rely on the application.
   // The user-specified timestamp feature is still under active development,
   // and the API is subject to change.
+  // 写操作的时间戳, 例如:Put. 相同数据库的所有时间戳必须共享相同的长度和格式，用户也可以负责提供一个定制的比较功能，
+  // 通过Comparator排序<key，timestamp>元组。如果用户想要启用时间戳，那么所有写操作都必须与时间戳相关联，
+  // 因为作为单节点存储引擎的RocksDB目前不了解全局时间，因此必须依赖于应用程序。用户指定的时间戳功能仍处于活动
+  // 开发阶段，API可能会发生变化。
   const Slice* timestamp;
 
   WriteOptions()
