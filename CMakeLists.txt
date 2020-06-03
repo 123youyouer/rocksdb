@@ -1254,3 +1254,4 @@ if(WITH_TOOLS)
   add_custom_target(tools
     DEPENDS ${tool_deps})
 endif()
+add_subdirectory(examples)
